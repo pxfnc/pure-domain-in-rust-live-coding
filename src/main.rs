@@ -32,6 +32,8 @@ fn create_user_usecase_bad(db: &mut DB, name: String) -> Result<(), &'static str
     Ok(())
 }
 
+// -----------------------------------------------------------------------------
+
 fn create_user_usecase_chotto_god(db: &mut DB, name: String) -> Result<(), &'static str> {
     let new_id = db.keys().max().map(|n| n + 1).unwrap_or_default();
 
@@ -43,9 +45,41 @@ fn create_user_usecase_chotto_god(db: &mut DB, name: String) -> Result<(), &'sta
     Ok(())
 }
 
+// -----------------------------------------------------------------------------
+
+#[derive(Debug)]
+struct UserRepo {
+    db: DB,
+}
+
+impl UserRepo {
+    fn new(db: DB) -> Self {
+        Self { db }
+    }
+    fn get_new_id(&self) -> u64 {
+        self.db.keys().max().map(|n| n + 1).unwrap_or_default()
+    }
+    fn save(&mut self, user: User) -> Result<(), &'static str> {
+        let new_id = self.db.keys().max().map(|n| n + 1).unwrap_or_default();
+        let mut record = HashMap::new();
+        record.insert("id", user.id.to_string());
+        record.insert("name", user.name);
+        self.db.insert(new_id, record);
+        Ok(())
+    }
+}
+
+fn create_user_usecase_sugoku_god(repo: &mut UserRepo, name: String) -> Result<(), &'static str> {
+    let new_id = repo.get_new_id();
+    let user = User::new(new_id, name)?;
+    repo.save(user)
+}
+
 fn main() {
-    let mut db: DB = HashMap::new();
-    let _ = create_user_usecase_chotto_god(&mut db, "Taro".to_string());
-    let _ = create_user_usecase_chotto_god(&mut db, "Jiro".to_string());
-    println!("{:?}", db);
+    let db: DB = HashMap::new();
+    let mut repo: UserRepo = UserRepo::new(db);
+
+    let _ = create_user_usecase_sugoku_god(&mut repo, "Taro".to_string());
+    let _ = create_user_usecase_sugoku_god(&mut repo, "Jiro".to_string());
+    println!("{:?}", repo);
 }
