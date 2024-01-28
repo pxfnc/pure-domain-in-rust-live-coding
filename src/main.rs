@@ -75,11 +75,40 @@ fn create_user_usecase_sugoku_god(repo: &mut UserRepo, name: String) -> Result<(
     repo.save(user)
 }
 
+// -----------------------------------------------------------------------------
+
+trait IUserRepo {
+    fn get_new_id(&self) -> u64;
+
+    fn save(&mut self, user: User) -> Result<(), &'static str>;
+}
+
+impl IUserRepo for UserRepo {
+    fn get_new_id(&self) -> u64 {
+        self.get_new_id()
+    }
+
+    fn save(&mut self, user: User) -> Result<(), &'static str> {
+        self.save(user)
+    }
+}
+
+fn create_user_usecase_awesome_saiko<R>(repo: &mut R, name: String) -> Result<(), &'static str>
+where
+    R: IUserRepo,
+{
+    let new_id = repo.get_new_id();
+    let user = User::new(new_id, name)?;
+    repo.save(user)
+}
+
+// -----------------------------------------------------------------------------
+
 fn main() {
     let db: DB = HashMap::new();
     let mut repo: UserRepo = UserRepo::new(db);
 
-    let _ = create_user_usecase_sugoku_god(&mut repo, "Taro".to_string());
-    let _ = create_user_usecase_sugoku_god(&mut repo, "Jiro".to_string());
+    let _ = create_user_usecase_awesome_saiko(&mut repo, "Taro".to_string());
+    let _ = create_user_usecase_awesome_saiko(&mut repo, "Jiro".to_string());
     println!("{:?}", repo);
 }
